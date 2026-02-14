@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Alien Style Clocks</title>
+
+<style>
+  :root{
+    --neon:#00ff88;
+    --bg1:#001a00;
+    --bg2:#000;
+  }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at center, #020b02, #000);
+    font-family: "Courier New", monospace;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: var(--neon);
+    padding: 24px;
+  }
+
+  .container {
+    padding: 30px;
+    max-width: 1100px;
+    width: 100%;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 18px;
+    letter-spacing: 3px;
+    color: #7cffc4;
+    text-shadow: 0 0 15px var(--neon);
+    font-size: 24px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    align-items: stretch;
+  }
+
+  .clock {
+    background: linear-gradient(145deg, var(--bg1), var(--bg2));
+    border-radius: 14px;
+    padding: 18px 16px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,255,120,0.08), inset 0 0 16px rgba(0,255,120,0.06);
+    min-width: 200px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    gap:8px;
+  }
+
+  .time {
+    font-size: 28px;
+    line-height: 1.05;
+    color: var(--neon);
+    text-shadow: 0 0 8px rgba(0,255,120,0.25);
+    word-break: break-all;
+    letter-spacing: 2px;
+  }
+
+  .badge {
+    font-size: 12px;
+    color: rgba(200,255,200,0.85);
+    background: rgba(0,0,0,0.25);
+    padding: 4px 8px;
+    border-radius: 999px;
+    align-self:center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+
+  .original {
+    font-size: 11px;
+    color: rgba(180,255,200,0.6);
+  }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 520px) {
+    .grid { grid-template-columns: 1fr; }
+    .time { font-size: 24px; }
+  }
+</style>
+</head>
+
+<body>
+<div class="container">
+  <h1>ALIEN STYLE CLOCKS  <span style="color:#fff;"></span></h1>
+  <div class="grid" id="clockGrid"></div>
+</div>
+
+<script>
+const alienDigitSets = [
+  {'0':'☀','1':'☾','2':'✺','3':'☽','4':'✧','5':'✡','6':'☍','7':'☼','8':'CaCo2','9':'✶'},
+  {'0':'◎','1':'●','2':'★','3':'✵','4':'⚪','5':'⨀','6':'⨁','7':'⬦','8':'⊗','9':'⟁'},
+  {'0':'☾','1':'♒','2':'☯','3':'✡','4':'☽','5':'⌘','6':'⨀','7':'⌘','8':'☾','9':'♈'},
+  {'0':'0','1':'⮌','2':'⨅','3':'⟁','4':'⊗','5':'⚛','6':'⍈','7':'⍂','8':'⎈','9':'⨐'},
+  {'0':'⭥','1':'♒','2':'⟁','3':'⨘','4':'⍂','5':'⩠','6':'⊠','7':'⨉','8':'⍷','9':'9'},
+  {'0':'⊙','1':'⩔','2':'O3','3':'⨙','4':'⨖','5':'☿','6':'⨏','7':'⨤','8':'8','9':'⨉'},
+  {'0':'⮌','1':'⍋','2':'⚗','3':'⩯','4':'⮛','5':'Au','6':'H2O','7':'⩠','8':'⟊','9':'⩡'},
+  {'0':'⏚','1':'⊹','2':'⩱','3':'⍁','4':'⨠','5':'⨦','6':'⩥','7':'⨏','8':'⭛','9':'Fe'},
+  {'0':'✶','1':'⚙','2':'⧫','3':'⨞','4':'K','5':'Mg','6':'⩯','7':'⊙','8':'☽','9':'⍂'},
+  {'0':'⚒','1':'⨎','2':'⨿','3':'⨳','4':'⩯','5':'⨈','6':'⪧','7':'⮟','8':'!','9':'⩩'}
+];
+
+const grid = document.getElementById("clockGrid");
+
+// Create clock elements - each clock will contain a time line and a small badge
+alienDigitSets.forEach((set, idx) => {
+  const div = document.createElement("div");
+  div.className = "clock";
+
+  const timeLine = document.createElement('div');
+  timeLine.className = 'time';
+  timeLine.textContent = '--:--:--';
+
+  const badge = document.createElement('div');
+  badge.className = 'badge';
+  badge.textContent = '';
+
+  const original = document.createElement('div');
+  original.className = 'original';
+  original.textContent = '';
+
+  div.appendChild(timeLine);
+  div.appendChild(badge);
+  div.appendChild(original);
+
+  grid.appendChild(div);
+});
+
+function convert(time, set) {
+  return time.split("").map(ch => set[ch] ?? ch).join("");
+}
+
+function updateClocks() {
+  const now = new Date();
+  // add 3 hours
+  const adjusted = new Date(now.getTime() + 3 * 60 * 60 * 1000);
+
+  const hh = String(adjusted.getHours()).padStart(2, '0');
+  const mm = String(adjusted.getMinutes()).padStart(2, '0');
+  const ss = String(adjusted.getSeconds()).padStart(2, '0');
+  const adjustedTimeStr = `${hh}:${mm}:${ss}`;
+
+  // Also show original local time in small text for clarity
+  const orig_h = String(now.getHours()).padStart(2, '0');
+  const orig_m = String(now.getMinutes()).padStart(2, '0');
+  const orig_s = String(now.getSeconds()).padStart(2, '0');
+  const originalTimeStr = `${orig_h}:${orig_m}:${orig_s}`;
+
+  const clocks = document.querySelectorAll('.clock');
+  clocks.forEach((el, i) => {
+    const timeLine = el.querySelector('.time');
+    const original = el.querySelector('.original');
+    timeLine.textContent = convert(adjustedTimeStr, alienDigitSets[i]);
+    original.textContent = `local: ${originalTimeStr}`;
+  });
+}
+
+setInterval(updateClocks, 1000);
+updateClocks();
+</script>
+</body>
+</html>
